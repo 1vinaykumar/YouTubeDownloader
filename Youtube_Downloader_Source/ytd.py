@@ -13,11 +13,15 @@ import os
 
 window=Tk()
 
-screen_width = window.winfo_screenwidth()
+#screen_width = window.winfo_screenwidth()
 
-screen_height = window.winfo_screenheight()
+#screen_height = window.winfo_screenheight()
 
-window.state("zoomed")
+#window.state("zoomed")
+
+window.configure(height=600)
+
+window.configure(width=550)
 
 window.title("YouTube Downloader")
 
@@ -39,15 +43,28 @@ def download_path():
 
 
 
+'''def on_progress(stream,chunk,file_handler,bytes_remaining):
 
-def on_progress(stream,chunk,file_handler,bytes_remaining):
+    global thd1,txt123
 
-    txt=int(100*(file_size-bytes_remaining)/file_size)
+    ij=-1
 
-    ttk.Progressbar(frame,orient="horizontal",length=300,mode="determinate",maximum=100,value=txt).place(relx=0.5,rely=0.72,anchor=S)
+    txt123=int(100*(file_size-bytes_remaining)/file_size)
+
+    if ij!=txt123:
+
+        thd1=Thread(target=progress,args=())
+
+        thd1.start()
+
+        
 
 
+def progress():
     
+    ttk.Progressbar(frame,orient="horizontal",length=300,mode="determinate",maximum=100,value=txt123).place(relx=0.5,rely=0.72,anchor=S)'''
+
+
 
 def fetch_det():
 
@@ -61,7 +78,7 @@ def fetch_det():
 
         global yt
 
-        yt=YouTube(url,on_progress_callback=on_progress)
+        yt=YouTube(url)
 
     except:
 
@@ -123,13 +140,12 @@ def yt_dw():
 
     thd.start()
 
-    
+
 
 def yt_dwnld():
-          
-    
+
     try:
-    
+        
         req_vid=stream_list.filter(resolution=res_in.get()).first()
     
         global file_size
@@ -141,7 +157,7 @@ def yt_dwnld():
         txt_dis="Download Completed"
 
     except:
-
+        
         txt_dis="  Download Error  "
 
     res_txt=Text(frame,width=41,height=3,fg="green",bg="#c0dfd9")
@@ -155,7 +171,6 @@ def yt_dwnld():
     res_txt.insert(END,txt_dis,'bold_big')
 
     res_txt.place(relx=0.5,rely=0.85,anchor=S)
-
 
 
 
