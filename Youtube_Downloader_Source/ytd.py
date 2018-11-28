@@ -4,8 +4,6 @@ from tkinter import *
 
 from tkinter import ttk
 
-import threading
-
 from threading import Thread
 
 import os
@@ -19,19 +17,26 @@ window=Tk()
 
 #window.state("zoomed")
 
-window.configure(height=600)
+
+''' Main window '''
+
+window.configure(height=650)
 
 window.configure(width=550)
 
 window.title("YouTube Downloader")
 
+
+''' Inside Frame '''
+
 frame=Frame(window)
 
 frame.configure(height=550,width=550)
 
-frame.place(relx=0.5,rely=0.4,anchor=CENTER)
+frame.place(relx=0.5,rely=0.5,anchor=CENTER)
 
 
+''' Function to locate Download Path of User '''
 
 def download_path():
     
@@ -42,29 +47,25 @@ def download_path():
     return Downloads
 
 
+''' Progress Bar to see the status of download '''
 
-'''def on_progress(stream,chunk,file_handler,bytes_remaining):
+def on_progress(stream,chunk,file_handler,bytes_remaining):
 
-    global thd1,txt123
+    stat=int(100*(file_size-bytes_remaining)/file_size)
 
-    ij=-1
+    if stat%5==0:
 
-    txt123=int(100*(file_size-bytes_remaining)/file_size)
-
-    if ij!=txt123:
-
-        thd1=Thread(target=progress,args=())
-
-        thd1.start()
-
-        
+        ttk.Progressbar(frame,orient="horizontal",length=300,mode="determinate",maximum=100,value=stat).place(relx=0.5,rely=0.72,anchor=S)
 
 
-def progress():
+''' Seperate Thread to creation to fetch details of video, Invokes when user clicks Check button '''
+
+def fetch():
     
-    ttk.Progressbar(frame,orient="horizontal",length=300,mode="determinate",maximum=100,value=txt123).place(relx=0.5,rely=0.72,anchor=S)'''
+    Thread(target=fetch_det,args=()).start()
 
 
+''' Function to fetch details of the Video, Invokes when seperate thread is created '''
 
 def fetch_det():
 
@@ -131,28 +132,28 @@ def fetch_det():
     Button(frame,text="Exit",width=25,bg="#b3c2bf",command=window.destroy).place(x=50,y=320)
 
 
+''' Seperate Thread creation to download file, Invokes when user clicks Download Button in GUI '''
 
 def yt_dw():
-
-    global thd
-
-    thd=Thread(target=yt_dwnld,args=())
-
-    thd.start()
+    
+    thd=Thread(target=yt_dwnld,args=()).start()
 
 
+''' Download function, Invokes when seperate thread is created '''
 
 def yt_dwnld():
 
     try:
-        
         req_vid=stream_list.filter(resolution=res_in.get()).first()
     
         global file_size
 
         file_size=req_vid.filesize
 
+        Thread(target=yt.register_on_progress_callback(on_progress)).start()
+
         req_vid.download(download_path())
+
 
         txt_dis="Download Completed"
 
@@ -173,6 +174,7 @@ def yt_dwnld():
     res_txt.place(relx=0.5,rely=0.85,anchor=S)
 
 
+''' User Interface that is present at start '''
 
 url_in=StringVar()
 
@@ -184,7 +186,7 @@ ent1.focus()
 
 ent1.place(x=150,y=50)
 
-Button(frame,text="Check",width=10,bg="#b3c2bf",command=fetch_det).place(x=460,y=48)
+Button(frame,text="Check",width=10,bg="#b3c2bf",command=fetch).place(x=460,y=48)
 
 
 window.mainloop()
