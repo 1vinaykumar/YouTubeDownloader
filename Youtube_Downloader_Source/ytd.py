@@ -62,7 +62,7 @@ def on_progress(stream,chunk,file_handler,bytes_remaining):
 
 def fetch():
     
-    Thread(target=fetch_det,args=()).start()
+    Thread(target=fetch_det).start()
 
 
 ''' Function to fetch details of the Video, Invokes when seperate thread is created '''
