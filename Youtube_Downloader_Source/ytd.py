@@ -11,6 +11,7 @@ import os
 
 window=Tk()
 
+
 #screen_width = window.winfo_screenwidth()
 
 #screen_height = window.winfo_screenheight()
@@ -18,7 +19,9 @@ window=Tk()
 #window.state("zoomed")
 
 
+
 ''' Main window '''
+
 
 window.configure(height=650)
 
@@ -27,16 +30,9 @@ window.configure(width=550)
 window.title("YouTube Downloader")
 
 
-''' Inside Frame '''
-
-frame=Frame(window)
-
-frame.configure(height=550,width=550)
-
-frame.place(relx=0.5,rely=0.5,anchor=CENTER)
-
 
 ''' Function to locate Download Path of User '''
+
 
 def download_path():
     
@@ -47,7 +43,9 @@ def download_path():
     return Downloads
 
 
+
 ''' Progress Bar to see the status of download '''
+
 
 def on_progress(stream,chunk,file_handler,bytes_remaining):
 
@@ -55,17 +53,41 @@ def on_progress(stream,chunk,file_handler,bytes_remaining):
 
     if stat%5==0:
 
-        ttk.Progressbar(frame,orient="horizontal",length=300,mode="determinate",maximum=100,value=stat).place(relx=0.5,rely=0.72,anchor=S)
+        ttk.Progressbar(frame,orient="horizontal",length=250,mode="determinate",maximum=100,value=stat).place(relx=0.5,rely=0.62,anchor=S)
+
+
+
+''' On Complete Message '''
+
+
+def on_complete(stream,file_handle):
+
+    Button(frame,text="Download Completed",state=DISABLED,bg="light green",fg="white",width=40).place(relx=0.5,rely=0.69,anchor=S)
+
+
+
+''' Function to start new fresh download '''
+
+
+def start2():
+
+    frame.place_forget()
+
+    Thread(target=start1).start()
+
 
 
 ''' Seperate Thread to creation to fetch details of video, Invokes when user clicks Check button '''
+
 
 def fetch():
     
     Thread(target=fetch_det).start()
 
 
+
 ''' Function to fetch details of the Video, Invokes when seperate thread is created '''
+
 
 def fetch_det():
 
@@ -88,6 +110,12 @@ def fetch_det():
         yt=""
 
     else:
+
+        label1.place_forget()
+
+        button1.place_forget()
+        
+        entry1.place_forget()
 
         txt1=yt.title[:80]
 
@@ -123,23 +151,27 @@ def fetch_det():
 
             y_ref+=30
         
-        Button(frame,text="Download",width=25,bg="#b3c2bf",command=yt_dw).place(x=300,y=320)
+        Button(frame,text="Download",width=30,bg="#b3c2bf",command=yt_dw).place(relx=0.5,rely=0.55,anchor=S)
+
+        Button(frame,text="Download More Files",width=45,bg="#b3c2bf",command=start2).place(relx=0.5,rely=0.85,anchor=S)
 
     Label(frame,text=txt1,bg="#c0dfd9",width=72).place(relx=0.5,y=120,anchor=CENTER)
 
     Label(frame,text=",  ".join(res_list),bg="#c0dfd9",width=72).place(relx=0.5,y=160,anchor=CENTER)
 
-    Button(frame,text="Exit",width=25,bg="#b3c2bf",command=window.destroy).place(x=50,y=320)
 
 
 ''' Seperate Thread creation to download file, Invokes when user clicks Download Button in GUI '''
+
 
 def yt_dw():
     
     thd=Thread(target=yt_dwnld,args=()).start()
 
 
+
 ''' Download function, Invokes when seperate thread is created '''
+
 
 def yt_dwnld():
 
@@ -152,41 +184,52 @@ def yt_dwnld():
 
         Thread(target=yt.register_on_progress_callback(on_progress)).start()
 
+        Thread(target=yt.register_on_complete_callback(on_complete)).start()
+
         req_vid.download(download_path())
 
-
-        txt_dis="Download Completed"
-
     except:
-        
-        txt_dis="  Download Error  "
 
-    res_txt=Text(frame,width=41,height=3,fg="green",bg="#c0dfd9")
+        Button(frame,text="Download Error",state=DISABLED,bg="red",width=40).place(relx=0.5,rely=0.75,anchor=S)
 
-    if txt_dis=="Download Error":
-        
-        res_txt.configure(fg="red")
-
-    res_txt.tag_configure('bold_big',font=('Times New Roman',27,'bold'))
-
-    res_txt.insert(END,txt_dis,'bold_big')
-
-    res_txt.place(relx=0.5,rely=0.85,anchor=S)
 
 
 ''' User Interface that is present at start '''
 
-url_in=StringVar()
 
-Label(frame,text="URL", width=15,bg="#c0dfd9").place(x=10,y=50)
+def start1():
 
-ent1=Entry(frame,textvariable=url_in,width=48)
+    global frame
 
-ent1.focus()
+    frame=Frame(window)
 
-ent1.place(x=150,y=50)
+    frame.configure(height=650,width=550)
 
-Button(frame,text="Check",width=10,bg="#b3c2bf",command=fetch).place(x=460,y=48)
+    frame.place(relx=0.5,rely=0.5,anchor=CENTER)
+
+    global url_in,entry1,button1,label1
+    
+    url_in=StringVar()
+
+    label1=Label(frame,text="URL", width=15,bg="#c0dfd9")
+
+    label1.place(x=10,y=50)
+
+    entry1=Entry(frame,textvariable=url_in,width=48)
+
+    entry1.focus()
+
+    entry1.place(x=150,y=50)
+
+    button1=Button(frame,text="Check",width=10,bg="#b3c2bf",command=fetch)
+
+    button1.place(x=460,y=48)
+
+    Button(frame,text="Exit",width=50,bg="#b3c2bf",command=window.destroy).place(relx=0.5,rely=0.95,anchor=S)
+
+    
+
+Thread(target=start1).start()
 
 
 window.mainloop()
