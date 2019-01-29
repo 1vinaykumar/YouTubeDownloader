@@ -51,9 +51,13 @@ def on_progress(stream,chunk,file_handler,bytes_remaining):
 
     stat=int(100*(file_size-bytes_remaining)/file_size)
 
+    global pb
+
     if stat%5==0:
 
-        ttk.Progressbar(frame,orient="horizontal",length=250,mode="determinate",maximum=100,value=stat).place(relx=0.5,rely=0.62,anchor=S)
+        pb=ttk.Progressbar(frame,orient="horizontal",length=250,mode="determinate",maximum=100,value=stat)
+        
+        pb.place(relx=0.5,y=450,anchor=S)
 
 
 
@@ -62,7 +66,9 @@ def on_progress(stream,chunk,file_handler,bytes_remaining):
 
 def on_complete(stream,file_handle):
 
-    Button(frame,text="Download Completed",state=DISABLED,bg="light green",fg="white",width=40).place(relx=0.5,rely=0.69,anchor=S)
+    pb.place_forget()
+
+    Button(frame,text="Download Completed",state=DISABLED,bg="light green",fg="white",width=40).place(relx=0.5,y=450,anchor=S)
 
 
 
@@ -119,45 +125,125 @@ def fetch_det():
 
         txt1=yt.title[:80]
 
-        global stream_list
+        Label(frame,text=txt1,bg="#c0dfd9",width=72).place(relx=0.5,y=100,anchor=CENTER)
+        
+        global res_in1
+
+        res_in1=IntVar()
+
+        rad2=Radiobutton(frame,text="Video and Audio",variable=res_in1,value=1,width=15,bg="#c0dfd9",command=result1)
+
+        rad2.place(y=150,relx=0.2,anchor=CENTER)
+
+        rad2.select()
+
+        rad2=Radiobutton(frame,text="Video Only",variable=res_in1,value=2,width=15,bg="#c0dfd9",command=result1)
+
+        rad2.place(y=150,relx=0.5,anchor=CENTER)
+
+        rad2.deselect()
+
+        rad2=Radiobutton(frame,text="Audio Only",variable=res_in1,value=3,width=15,bg="#c0dfd9",command=result1)
+
+        rad2.place(y=150,relx=0.8,anchor=CENTER)
+
+        rad2.deselect()
+
+        Button(frame,text="Download More Files",width=45,bg="#b3c2bf",command=start2).place(relx=0.5,y=570,anchor=S)
+
+
+
+''' Streams result Thread creation '''
+
+
+def result1():
+
+    Thread(target=res_rb).start()
+
+
+
+''' Streams Result '''
+
+
+def res_rb():
+
+    global stream_list,res_in
+
+    res_in=StringVar()
+
+    if res_in1.get()==1:
 
         stream_list=yt.streams.filter(progressive=True, file_extension='mp4')
 
         res_list=[i.resolution+" : "+str(round(i.filesize/(1024*1024),2))+" MB" for i in stream_list.all()]
 
-        global res_in
+    elif res_in1.get()==2:
 
-        res_in=StringVar()
+        stream_list=yt.streams.filter(adaptive=True,only_video=True, file_extension='mp4')
 
-        y_ref=210
+        res_list=[i.resolution+" : "+str(round(i.filesize/(1024*1024),2))+" MB" for i in stream_list.all()]
 
-        x=1
+    elif res_in1.get()==3:
 
-        for i in stream_list.all():
+        stream_list=yt.streams.filter(adaptive=True,only_audio=True, file_extension='mp4')
 
-            rad=Radiobutton(frame,text=i.resolution,variable=res_in,value=i.resolution,width=10,bg="#c0dfd9")
+        res_list=[i.abr+" : "+str(round(i.filesize/(1024*1024),2))+" MB" for i in stream_list.all()]
 
-            if x:
+    y_ref=250
 
-                rad.select()
+    x_ref=150
 
-                x=0
+    x1=1
 
-            else:
+    stream_list1=['1080p','720p','480p','360p','240p','144p','192kbps','128kbps']
 
-                rad.deselect()
+    if res_in1.get() == 1 or res_in1.get()==2:
 
-            rad.place(y=y_ref,relx=0.5,anchor=CENTER)
+        str_list=[i.resolution for i in stream_list.all()]
 
-            y_ref+=30
-        
-        Button(frame,text="Download",width=30,bg="#b3c2bf",command=yt_dw).place(relx=0.5,rely=0.55,anchor=S)
+    else:
 
-        Button(frame,text="Download More Files",width=45,bg="#b3c2bf",command=start2).place(relx=0.5,rely=0.85,anchor=S)
+        str_list=[i.abr for i in stream_list.all()]
 
-    Label(frame,text=txt1,bg="#c0dfd9",width=72).place(relx=0.5,y=120,anchor=CENTER)
+    
+    for i in range(8):
 
-    Label(frame,text=",  ".join(res_list),bg="#c0dfd9",width=72).place(relx=0.5,y=160,anchor=CENTER)
+        rad=Radiobutton(frame,text=stream_list1[i],variable=res_in,value=stream_list1[i],width=10,bg="#c0dfd9")
+
+        if stream_list1[i] not in str_list:
+
+            rad.configure(state=DISABLED)
+
+        if x1:
+
+            rad.select()
+
+            x1=0
+
+        else:
+
+            rad.deselect()
+
+        if i==3:
+
+            y_ref=250
+
+            x_ref=270
+
+        elif i==6:
+
+            y_ref=250
+
+            x_ref=400
+
+        rad.place(y=y_ref,x=x_ref,anchor=CENTER)
+
+        y_ref+=35
+
+
+    Button(frame,text="Download",width=30,bg="#b3c2bf",command=yt_dw).place(relx=0.5,y=390,anchor=S)
+
+    Label(frame,text=",  ".join(res_list),bg="#c0dfd9",width=72).place(relx=0.5,y=200,anchor=CENTER)
 
 
 
@@ -166,7 +252,7 @@ def fetch_det():
 
 def yt_dw():
     
-    thd=Thread(target=yt_dwnld,args=()).start()
+    Thread(target=yt_dwnld).start()
 
 
 
@@ -176,21 +262,28 @@ def yt_dw():
 def yt_dwnld():
 
     try:
-        req_vid=stream_list.filter(resolution=res_in.get()).first()
-    
+
+        if res_in1.get()==3:
+
+            req_vid=stream_list.filter(abr=res_in.get()).first()
+
+        else:
+
+            req_vid=stream_list.filter(resolution=res_in.get()).first()
+
         global file_size
 
         file_size=req_vid.filesize
 
-        Thread(target=yt.register_on_progress_callback(on_progress)).start()
-
-        Thread(target=yt.register_on_complete_callback(on_complete)).start()
-
         req_vid.download(download_path())
+
+        Thread(target=yt.register_on_progress_callback(on_progress),args=()).start()
+
+        Thread(target=yt.register_on_complete_callback(on_complete),args=()).start()
 
     except:
 
-        Button(frame,text="Download Error",state=DISABLED,bg="red",width=40).place(relx=0.5,rely=0.75,anchor=S)
+        Button(frame,text="Download Error",state=DISABLED,bg="red",width=40).place(relx=0.5,y=420,anchor=S)
 
 
 
@@ -213,19 +306,20 @@ def start1():
 
     label1=Label(frame,text="URL", width=15,bg="#c0dfd9")
 
-    label1.place(x=10,y=50)
+    label1.place(x=10,y=100)
 
     entry1=Entry(frame,textvariable=url_in,width=48)
 
     entry1.focus()
 
-    entry1.place(x=150,y=50)
+    entry1.place(x=150,y=100)
 
     button1=Button(frame,text="Check",width=10,bg="#b3c2bf",command=fetch)
 
-    button1.place(x=460,y=48)
+    button1.place(x=460,y=98)
 
-    Button(frame,text="Exit",width=50,bg="#b3c2bf",command=window.destroy).place(relx=0.5,rely=0.95,anchor=S)
+    Button(frame,text="Exit",width=50,bg="#b3c2bf",command=window.destroy).place(relx=0.5,y=620,anchor=S)
+
 
     
 
