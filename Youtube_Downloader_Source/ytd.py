@@ -175,19 +175,19 @@ def res_rb():
 
         stream_list=yt.streams.filter(progressive=True, file_extension='mp4')
 
-        res_list=[i.resolution+" : "+str(round(i.filesize/(1024*1024),2))+" MB" for i in stream_list.all()]
+        res_list=[i.resolution+" : "+str(round(i.filesize/(1024*1024),2))+" MB" for i in stream_list.all() if i.resolution != None]
 
-    elif res_in1.get()==2:
+    if res_in1.get()==2:
 
         stream_list=yt.streams.filter(adaptive=True,only_video=True, file_extension='mp4')
 
-        res_list=[i.resolution+" : "+str(round(i.filesize/(1024*1024),2))+" MB" for i in stream_list.all()]
+        res_list=[i.resolution+" : "+str(round(i.filesize/(1024*1024),2))+" MB" for i in stream_list.all() if i.resolution != None]
 
-    elif res_in1.get()==3:
+    if res_in1.get()==3:
 
         stream_list=yt.streams.filter(adaptive=True,only_audio=True, file_extension='mp4')
 
-        res_list=[i.abr+" : "+str(round(i.filesize/(1024*1024),2))+" MB" for i in stream_list.all()]
+        res_list=[i.abr+" : "+str(round(i.filesize/(1024*1024),2))+" MB" for i in stream_list.all() if i.abr != None]
 
     y_ref=250
 
